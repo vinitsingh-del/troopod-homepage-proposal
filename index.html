@@ -346,9 +346,6 @@
     height:100%;
     overflow:hidden;
   }
-  body{
-    perspective:1600px;
-  }
   nav{
     position:fixed;
     top:0; left:0; right:0;
@@ -369,28 +366,32 @@
     opacity:0;
     visibility:hidden;
     pointer-events:none;
-    transform:translateZ(-260px);
-    transition:opacity .55s cubic-bezier(.22,1,.36,1), transform .55s cubic-bezier(.22,1,.36,1), visibility 0s;
+    transform:scale(.94) translateY(18px);
+    transform-origin:center center;
+    backface-visibility:hidden;
+    transition:opacity .6s cubic-bezier(.33,1,.68,1), transform .6s cubic-bezier(.22,1,.36,1), visibility 0s;
     z-index:1;
   }
   .slide.active{
     opacity:1;
     visibility:visible;
     pointer-events:auto;
-    transform:translateZ(0);
+    transform:scale(1) translateY(0);
     z-index:5;
+    will-change:opacity, transform;
   }
   .slide.exiting{
     opacity:0;
     visibility:visible;
     pointer-events:none;
-    transform:translateZ(260px);
+    transform:scale(1.035) translateY(-10px);
     z-index:4;
+    will-change:opacity, transform;
   }
   /* sections with more content than one screen: top-align and let the
      slide scroll internally — the deck only advances once the user has
      scrolled that content fully, so nothing is ever cut off */
-  #work-carousel.slide, #pricing.slide, #cost-context.slide{
+  #work-carousel.slide, #pricing.slide, #cost-context.slide, #scope.slide{
     justify-content:flex-start;
     padding-top:80px;
   }
@@ -425,7 +426,7 @@
   @media(max-width:760px){
     .deck-nav{display:none;}
     .slide{padding-top:70px;}
-    #work-carousel.slide, #pricing.slide, #cost-context.slide, header.cover.slide{padding-top:82px;}
+    #work-carousel.slide, #pricing.slide, #cost-context.slide, #scope.slide, header.cover.slide{padding-top:82px;}
   }
 
   @media (prefers-reduced-motion: reduce){
@@ -630,6 +631,44 @@
   .foot-grid .flogo{font-weight:700;color:var(--white);font-size:16px;}
   .foot-grid .flogo span{color:var(--purple);}
   @media(min-width:760px){.foot-grid{flex-direction:row;justify-content:space-between;align-items:center;}}
+
+  /* mobile compaction — placed last so it correctly overrides the base
+     rules above for the content-heaviest sections, genuinely reducing
+     how much internal scroll each slide needs on small screens */
+  @media(max-width:600px){
+    .section-head{margin-bottom:24px;}
+    .scope-cell{padding:15px 16px;}
+    .scope-cell h4{font-size:14.5px;margin-bottom:5px;}
+    .scope-cell p{font-size:12px;line-height:1.45;}
+
+    .price-card{padding:20px 18px;}
+    .price-card .ptype{margin-bottom:8px;}
+    .price-card ul{margin-top:10px;gap:6px;}
+    .price-card .ptime{margin-top:12px;padding-top:12px;}
+    .price-note{margin-top:12px;}
+
+    .anchor-card{padding:18px 16px;gap:12px;margin-top:18px;}
+    .anchor-right{padding:0;min-height:0;}
+    .anchor-circle{max-width:150px;opacity:.55;}
+    .anchor-text{padding:6px;font-size:12.5px;}
+    .anchor-value{font-size:26px;}
+
+    .cost-compare{margin-top:22px;}
+    .cc-head h3{margin:6px 0 6px;}
+    .cc-grid{margin-top:12px;gap:10px;}
+    .cc-col{padding:14px 14px 2px;}
+    .cc-row{padding:7px 0;font-size:11.5px;}
+    .cc-col-title{margin-bottom:6px;}
+
+    .cover-sub{margin-top:16px;font-size:14px;line-height:1.55;}
+    .cover-meta{margin-top:26px;gap:12px;padding-top:18px;}
+    .cobrand-lockup{margin-bottom:14px;}
+    .kicker-row{margin-bottom:16px;}
+
+    .work-card{max-width:76vw;}
+    .work-card img{max-height:52vh;object-fit:cover;object-position:top;}
+    #work-carousel .section-head{margin-bottom:16px;}
+  }
 </style>
 </head>
 <body>
@@ -1004,7 +1043,7 @@
 
   var current = 0;
   var cooldown = false;
-  var COOLDOWN_MS = 600;
+  var COOLDOWN_MS = 640;
   var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // --- deck dots ---
@@ -1048,7 +1087,7 @@
     syncVideo(curEl, false);
     if(!reduceMotion){
       curEl.classList.add('exiting');
-      setTimeout(function(){ curEl.classList.remove('exiting'); }, 570);
+      setTimeout(function(){ curEl.classList.remove('exiting'); }, 620);
     }
 
     nextEl.classList.add('active');
@@ -1099,7 +1138,7 @@
       // longer than the transition itself, so a single trackpad swipe
       // (which keeps emitting wheel events through its inertial tail)
       // can only ever advance the deck once, not chain-trigger.
-      wheelLockTimer = setTimeout(function(){ wheelLocked = false; }, 900);
+      wheelLockTimer = setTimeout(function(){ wheelLocked = false; }, 850);
     }
     // otherwise let the slide's own internal scroll handle it natively
   }
