@@ -104,9 +104,21 @@
     display:flex;justify-content:space-between;align-items:flex-start;
     font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--grey);
     letter-spacing:.08em;
-    margin-bottom:38px;
+    margin-bottom:26px;
   }
   .kicker-row .tag{color:var(--purple);}
+  .cobrand-lockup{
+    display:flex;align-items:center;gap:14px;
+    margin-bottom:22px;
+  }
+  .cobrand-lockup .cobrand-name{
+    font-size:clamp(16px,2.4vw,21px);
+    font-weight:700;
+    letter-spacing:-.01em;
+  }
+  .cobrand-lockup .cobrand-troopod .accent{color:var(--purple);}
+  .cobrand-lockup .cobrand-x{color:var(--purple);font-size:16px;font-weight:400;}
+  .cobrand-lockup .cobrand-client{color:var(--white);opacity:.92;}
   h1.title{
     font-size:clamp(38px,10vw,84px);
     line-height:0.98;
@@ -253,6 +265,9 @@
   @media(min-width:760px){
     .work-card{flex:0 0 300px;}
   }
+  @media(min-width:900px){
+    .work-carousel{justify-content:center;}
+  }
 
   /* full-width stack for the wide/landscape screenshots, sits below the carousel */
   .work-full-list{
@@ -330,8 +345,8 @@
     opacity:0;
     visibility:hidden;
     pointer-events:none;
-    transform:translateZ(-500px);
-    transition:opacity .7s cubic-bezier(.16,1,.3,1), transform .7s cubic-bezier(.16,1,.3,1), visibility 0s;
+    transform:translateZ(-260px);
+    transition:opacity .55s cubic-bezier(.22,1,.36,1), transform .55s cubic-bezier(.22,1,.36,1), visibility 0s;
     z-index:1;
   }
   .slide.active{
@@ -345,15 +360,15 @@
     opacity:0;
     visibility:visible;
     pointer-events:none;
-    transform:translateZ(480px);
+    transform:translateZ(260px);
     z-index:4;
   }
   /* sections with more content than one screen: top-align and let the
      slide scroll internally — the deck only advances once the user has
      scrolled that content fully, so nothing is ever cut off */
-  #work.slide, #pricing.slide, #cost-context.slide{
+  #work-carousel.slide, #pricing.slide, #cost-context.slide{
     justify-content:flex-start;
-    padding-top:96px;
+    padding-top:80px;
   }
   header.cover.slide{
     justify-content:flex-start;
@@ -386,7 +401,7 @@
   @media(max-width:760px){
     .deck-nav{display:none;}
     .slide{padding-top:70px;}
-    #work.slide, #pricing.slide, #cost-context.slide, header.cover.slide{padding-top:82px;}
+    #work-carousel.slide, #pricing.slide, #cost-context.slide, header.cover.slide{padding-top:82px;}
   }
 
   @media (prefers-reduced-motion: reduce){
@@ -413,9 +428,9 @@
   .demo-toolbar .dot{width:8px;height:8px;border-radius:50%;background:var(--hair);}
   .demo-hero{
     position:relative;
-    padding:52px 22px 60px;
+    padding:48px 22px 52px;
     text-align:left;
-    min-height:420px;
+    min-height:380px;
     display:flex;flex-direction:column;justify-content:center;
     overflow:hidden;
   }
@@ -474,6 +489,7 @@
   .demo-caption{
     display:flex;justify-content:space-between;align-items:center;
     margin-top:14px;
+    margin-bottom:6px;
     font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--grey);
   }
   .demo-caption .live{display:flex;align-items:center;gap:6px;color:var(--purple);}
@@ -612,7 +628,11 @@
       <span>PROPOSAL <span class="tag">/ 001</span></span>
       <span>TROOPOD.IO — GROWTH &amp; CRO PARTNER</span>
     </div>
-    <div class="eyebrow" style="margin-top:18px;margin-bottom:0;">Troopod &times; Happi Planet</div>
+    <div class="cobrand-lockup">
+      <span class="cobrand-name cobrand-troopod">troo<span class="accent">pod</span></span>
+      <span class="cobrand-x">&times;</span>
+      <span class="cobrand-name cobrand-client">Happi Planet</span>
+    </div>
     <h1 class="title">Home page<br>revamp, built to<br><em class="accent-sweep">convert.</em></h1>
     <p class="cover-sub">A ground-up redesign of your home page — cinematic, fast, and structured around how people actually shop. No templates, no stock AI look. Built and benchmarked the way we ship for Durex, Tanishq, and Bombay Shaving Company.</p>
 
@@ -960,7 +980,7 @@
 
   var current = 0;
   var cooldown = false;
-  var COOLDOWN_MS = 750;
+  var COOLDOWN_MS = 600;
   var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // --- deck dots ---
@@ -1004,7 +1024,7 @@
     syncVideo(curEl, false);
     if(!reduceMotion){
       curEl.classList.add('exiting');
-      setTimeout(function(){ curEl.classList.remove('exiting'); }, 720);
+      setTimeout(function(){ curEl.classList.remove('exiting'); }, 570);
     }
 
     nextEl.classList.add('active');
@@ -1043,15 +1063,24 @@
     var goingDown = e.deltaY > 0;
     var goingUp = e.deltaY < 0;
 
-    if(goingDown && atBottom(slide) && current < slides.length - 1){
+    var wantsNext = goingDown && atBottom(slide) && current < slides.length - 1;
+    var wantsPrev = goingUp && atTop(slide) && current > 0;
+
+    if(wantsNext || wantsPrev){
       e.preventDefault();
-      withCooldown(function(){ activate(current + 1); });
-    } else if(goingUp && atTop(slide) && current > 0){
-      e.preventDefault();
-      withCooldown(function(){ activate(current - 1); });
+      if(wheelLocked) return;
+      wheelLocked = true;
+      activate(current + (wantsNext ? 1 : -1));
+      clearTimeout(wheelLockTimer);
+      // longer than the transition itself, so a single trackpad swipe
+      // (which keeps emitting wheel events through its inertial tail)
+      // can only ever advance the deck once, not chain-trigger.
+      wheelLockTimer = setTimeout(function(){ wheelLocked = false; }, 900);
     }
     // otherwise let the slide's own internal scroll handle it natively
   }
+  var wheelLocked = false;
+  var wheelLockTimer = null;
   window.addEventListener('wheel', onWheel, { passive: false });
 
   // --- touch: same boundary rule, using swipe distance instead of wheel delta ---
