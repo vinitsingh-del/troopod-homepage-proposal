@@ -317,6 +317,30 @@
     100%{background-position:0 0;}
   }
 
+  /* titles glow and shift color briefly each time their slide appears */
+  @keyframes titleGlow{
+    0%{
+      text-shadow:0 0 0 rgba(139,92,246,0);
+      color:var(--white);
+    }
+    38%{
+      text-shadow:0 0 26px rgba(139,92,246,.85), 0 0 56px rgba(139,92,246,.4);
+      color:var(--purple);
+    }
+    100%{
+      text-shadow:0 0 0 rgba(139,92,246,0);
+      color:var(--white);
+    }
+  }
+  .slide.active h1,
+  .slide.active h2,
+  .slide.active h3{
+    animation:titleGlow 1.15s ease-out;
+  }
+  @media (prefers-reduced-motion: reduce){
+    .slide.active h1, .slide.active h2, .slide.active h3{animation:none;}
+  }
+
   /* ================= DECK ENGINE — no page scroll, event-driven slides ================= */
   html, body{
     height:100%;
